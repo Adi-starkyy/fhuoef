@@ -10,33 +10,129 @@ import ErrorState from "./components/ErrorState"
 import EmptyState from "./components/EmptyState"
 import { mockWindData, mockPublishedAt, calculateMetrics } from "./mockData"
 
+const API_BASE = "http://localhost:8000"
+
 export default function App() {
-  const [deliveryDate, setDeliveryDate] = useState("2026-01-01")
+  const [dateFrom, setDateFrom] = useState("2026-01-01")
+  const [dateTo, setDateTo] = useState("2026-01-01")
   const [cutoffHour, setCutoffHour] = useState(12)
   const [viewState, setViewState] = useState("ready")
+  const [errorMessage, setErrorMessage] = useState("")
 
-  const metrics = calculateMetrics(mockWindData)
+  // Initial state uses default mock dataset
+  const initialMetrics = calculateMetrics(mockWindData)
+  const [dashboardData, setDashboardData] = useState({
+    metrics: initialMetrics,
+    rows: mockWindData,
+    publishedAt: mockPublishedAt
+  })
+
+  // Format ISO timestamp without regex for charts and data tables
+  const formatSlotLabel = (isoString, isMultiDay) => {
+    if (!isoString) return ""
+    const parts = isoString.split("T")
+    const datePart = parts[0]
+    const timePart = parts[1] ? parts[1].slice(0, 5) : ""
+    if (isMultiDay) {
+      const dateBits = datePart.split("-")
+      return `${dateBits[2]}/${dateBits[1]} ${timePart}`
+    }
+    return timePart
+  }
+
+  // Format published timestamp for the info line without regex
+  const formatPublishedAt = (isoString) => {
+    if (!isoString) return "Pre-gate closure"
+    const parts = isoString.split("T")
+    const dateBits = parts[0].split("-")
+    const timePart = parts[1] ? parts[1].slice(0, 5) : ""
+    return `${dateBits[2]}-${dateBits[1]}-${dateBits[0]} at ${timePart} UTC`
+  }
+
+  // Live fetch from backend analysis endpoint
+  const handleRunAnalysis = async () => {
+    setViewState("loading")
+    setErrorMessage("")
+
+    try {
+      const url = `${API_BASE}/api/v1/analysis/?date_from=${dateFrom}&date_to=${dateTo}&cutoff_hour=${cutoffHour}`
+      const response = await fetch(url)
+
+      if (!response.ok) {
+        let errDetail = "API returned status " + response.status
+        try {
+          const errJson = await response.json()
+          if (errJson && errJson.detail) {
+            errDetail = errJson.detail
+          }
+        } catch (_) {}
+        throw new Error(errDetail)
+      }
+
+      const result = await response.json()
+
+      if (!result.rows || result.rows.length === 0) {
+        setViewState("empty")
+        return
+      }
+
+      const isMultiDay = dateFrom !== dateTo
+
+      // Map rows for Recharts & DataTable
+      const formattedRows = result.rows.map((row, index) => ({
+        slot: index + 1,
+        time: formatSlotLabel(row.startTime, isMultiDay),
+        rawStartTime: row.startTime,
+        forecast: row.forecast,
+        actual: row.actual,
+        error: row.error,
+        publishTime: row.publishTime
+      }))
+
+      const pubTime = result.rows[0]?.publishTime
+      const formattedPubTime = formatPublishedAt(pubTime)
+
+      setDashboardData({
+        metrics: result.metrics || { mae: 0, rmse: 0, bias: 0, slot_count: 0 },
+        rows: formattedRows,
+        publishedAt: formattedPubTime
+      })
+
+      setViewState("ready")
+    } catch (err) {
+      setErrorMessage(err.message || "Failed to connect to the backend analysis API.")
+      setViewState("error")
+    }
+  }
 
   return (
     <div className="dashboard-container">
       <Header currentView={viewState} onViewChange={setViewState} />
 
       <InputsBar
-        deliveryDate={deliveryDate}
-        onDateChange={setDeliveryDate}
+        dateFrom={dateFrom}
+        onDateFromChange={setDateFrom}
+        dateTo={dateTo}
+        onDateToChange={setDateTo}
         cutoffHour={cutoffHour}
         onCutoffChange={setCutoffHour}
+        onAnalyze={handleRunAnalysis}
+        isLoading={viewState === "loading"}
       />
 
       {viewState === "loading" && <LoadingState />}
 
       {viewState === "error" && (
-        <ErrorState onRetry={() => setViewState("ready")} />
+        <ErrorState
+          onRetry={handleRunAnalysis}
+          message={errorMessage}
+        />
       )}
 
       {viewState === "empty" && (
         <EmptyState
-          deliveryDate={deliveryDate}
+          dateFrom={dateFrom}
+          dateTo={dateTo}
           cutoffHour={cutoffHour}
         />
       )}
@@ -44,18 +140,18 @@ export default function App() {
       {viewState === "ready" && (
         <>
           <MetricCards
-            mae={metrics.mae}
-            rmse={metrics.rmse}
-            bias={metrics.bias}
+            mae={dashboardData.metrics.mae}
+            rmse={dashboardData.metrics.rmse}
+            bias={dashboardData.metrics.bias}
           />
 
-          <ForecastChart data={mockWindData} />
+          <ForecastChart data={dashboardData.rows} />
 
-          <ErrorChart data={mockWindData} />
+          <ErrorChart data={dashboardData.rows} />
 
           <DataTable
-            data={mockWindData}
-            publishedAt={mockPublishedAt}
+            data={dashboardData.rows}
+            publishedAt={dashboardData.publishedAt}
           />
         </>
       )}

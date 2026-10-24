@@ -35,13 +35,15 @@ function CustomTooltip({ active, payload, label }) {
 }
 
 export default function ForecastChart({ data }) {
+  const slotCount = data ? data.length : 0
+
   return (
     <section className="card chart-card">
       <div className="card-header">
         <div>
           <h2 className="card-title">Wind Generation Profile</h2>
           <p className="card-subtitle">
-            Forecast vs Actual wind output (MW) across 48 settlement periods
+            Forecast vs Actual wind output (MW) across {slotCount} settlement periods
           </p>
         </div>
       </div>
@@ -50,15 +52,17 @@ export default function ForecastChart({ data }) {
         <ResponsiveContainer width="100%" height={360}>
           <LineChart
             data={data}
-            margin={{ top: 12, right: 24, left: 16, bottom: 8 }}
+            margin={{ top: 12, right: 24, left: 16, bottom: 12 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
             <XAxis
               dataKey="time"
               stroke="#64748b"
-              fontSize={12}
+              fontSize={11}
               tickLine={false}
-              interval={3}
+              minTickGap={50}
+              interval="preserveStartEnd"
+              dy={6}
             />
             <YAxis
               stroke="#64748b"

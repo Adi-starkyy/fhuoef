@@ -1,52 +1,98 @@
 export default function InputsBar({
-  deliveryDate,
-  onDateChange,
+  dateFrom,
+  onDateFromChange,
+  dateTo,
+  onDateToChange,
   cutoffHour,
-  onCutoffChange
+  onCutoffChange,
+  onAnalyze,
+  isLoading
 }) {
   const hours = Array.from({ length: 24 }, (_, i) => i)
 
   return (
     <section className="inputs-bar">
       <div className="input-group">
-        <label htmlFor="delivery-date" className="input-label">
-          Delivery Date
+        <label htmlFor="delivery-date-from" className="input-label">
+          Delivery Date From
         </label>
         <input
-          id="delivery-date"
+          id="delivery-date-from"
           type="date"
           className="input-control"
           min="2026-01-01"
           max="2026-01-31"
-          value={deliveryDate}
-          onChange={(e) => onDateChange(e.target.value)}
+          value={dateFrom}
+          onChange={(e) => {
+            const newFrom = e.target.value
+            onDateFromChange(newFrom)
+            if (dateTo && newFrom > dateTo) {
+              onDateToChange(newFrom)
+            }
+          }}
+        />
+      </div>
+
+      <div className="input-group">
+        <label htmlFor="delivery-date-to" className="input-label">
+          Delivery Date To
+        </label>
+        <input
+          id="delivery-date-to"
+          type="date"
+          className="input-control"
+          min={dateFrom || "2026-01-01"}
+          max="2026-01-31"
+          value={dateTo}
+          onChange={(e) => onDateToChange(e.target.value)}
         />
       </div>
 
       <div className="input-group">
         <label htmlFor="cutoff-hour" className="input-label">
-          Decision time on previous day
+          Cutoff Hour
         </label>
         <select
           id="cutoff-hour"
           className="input-control"
           value={cutoffHour}
           onChange={(e) => onCutoffChange(Number(e.target.value))}
+          title="Decision time on previous day"
         >
           {hours.map((h) => {
             const formatted = (h < 10 ? "0" + h : String(h)) + ":00"
             return (
               <option key={h} value={h}>
-                {formatted} ({h === 12 ? "Gate Closure baseline" : h + "h"})
+                {formatted} ({h === 12 ? "Gate Closure" : `${h}h`})
               </option>
             )
           })}
         </select>
       </div>
 
-      <div className="inputs-summary-badge">
-        <span className="badge-dot"></span>
-        <span>Day-Ahead Market Horizon</span>
+      <div className="inputs-actions">
+        <div className="inputs-summary-badge">
+          <span className="badge-dot"></span>
+          <span>Day-Ahead</span>
+        </div>
+
+        <button
+          type="button"
+          className="analyze-btn"
+          onClick={onAnalyze}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <>
+              <span className="btn-spinner"></span>
+              <span>Analyzing...</span>
+            </>
+          ) : (
+            <>
+              <span>⚡ Run Analysis</span>
+            </>
+          )}
+        </button>
       </div>
     </section>
   )

@@ -53,15 +53,17 @@ export default function ErrorChart({ data }) {
         <ResponsiveContainer width="100%" height={260}>
           <BarChart
             data={data}
-            margin={{ top: 12, right: 24, left: 16, bottom: 8 }}
+            margin={{ top: 12, right: 24, left: 16, bottom: 12 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
             <XAxis
               dataKey="time"
               stroke="#64748b"
-              fontSize={12}
+              fontSize={11}
               tickLine={false}
-              interval={3}
+              minTickGap={50}
+              interval="preserveStartEnd"
+              dy={6}
             />
             <YAxis
               stroke="#64748b"
