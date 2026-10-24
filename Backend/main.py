@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from api.v1.actualData.router import router as actual_data_router
 
 app = FastAPI(title="Backend API", version="1.0.0")
 
@@ -14,6 +15,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Register routers directly
+app.include_router(actual_data_router)
 
 @app.get("/")
 def read_root():
