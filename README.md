@@ -46,7 +46,6 @@ fhuoef/
         ├── main.jsx                # React DOM root entry
         ├── App.jsx                 # Main dashboard container & live data fetching
         ├── index.css               # Clean plain CSS styling (light mode, responsive cards)
-        ├── mockData.js             # Initial mock data and formula references
         └── components/
             ├── Header.jsx          # Dashboard header and summary text
             ├── InputsBar.jsx       # Delivery date range pickers, cutoff hour & "Run Analysis"
