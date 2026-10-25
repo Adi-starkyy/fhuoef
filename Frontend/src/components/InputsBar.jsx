@@ -20,8 +20,8 @@ export default function InputsBar({
           id="delivery-date-from"
           type="date"
           className="input-control"
-          min="2026-01-01"
-          max="2026-01-31"
+          min="2026-01-02"
+          max="2026-02-01"
           value={dateFrom}
           onChange={(e) => {
             const newFrom = e.target.value
@@ -41,8 +41,8 @@ export default function InputsBar({
           id="delivery-date-to"
           type="date"
           className="input-control"
-          min={dateFrom || "2026-01-01"}
-          max="2026-01-31"
+          min={dateFrom && dateFrom >= "2026-01-02" ? dateFrom : "2026-01-02"}
+          max="2026-02-01"
           value={dateTo}
           onChange={(e) => onDateToChange(e.target.value)}
         />

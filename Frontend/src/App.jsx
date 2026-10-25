@@ -15,8 +15,8 @@ const API_BASE =
   (import.meta.env.DEV ? "http://localhost:8000" : "")
 
 export default function App() {
-  const [dateFrom, setDateFrom] = useState("2026-01-01")
-  const [dateTo, setDateTo] = useState("2026-01-01")
+  const [dateFrom, setDateFrom] = useState("2026-01-02")
+  const [dateTo, setDateTo] = useState("2026-01-02")
   const [cutoffHour, setCutoffHour] = useState(12)
   const [viewState, setViewState] = useState("initial")
   const [errorMessage, setErrorMessage] = useState("")

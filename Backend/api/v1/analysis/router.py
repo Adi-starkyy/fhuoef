@@ -7,11 +7,11 @@ router = APIRouter(prefix="/api/v1/analysis", tags=["Wind Analysis (v1)"])
 def get_analysis(
     date_from: str = Query(
         ...,
-        description="Delivery start date in YYYY-MM-DD format (required), e.g. 2026-01-05"
+        description="Delivery start date in YYYY-MM-DD format (2026-01-02 to 2026-02-01), e.g. 2026-01-02"
     ),
     date_to: str = Query(
         ...,
-        description="Delivery end date in YYYY-MM-DD format (required), e.g. 2026-01-07"
+        description="Delivery end date in YYYY-MM-DD format (2026-01-02 to 2026-02-01), e.g. 2026-01-05"
     ),
     cutoff_hour: int | None = Query(
         None,

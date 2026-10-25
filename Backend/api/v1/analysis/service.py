@@ -64,6 +64,9 @@ def calculate_metrics(rows: list[dict]) -> dict:
         "slot_count": n,
     }
 
+MIN_DELIVERY_DATE = date(2026, 1, 2)
+MAX_DELIVERY_DATE = date(2026, 2, 1)
+
 def get_wind_analysis(date_from: str, date_to: str, cutoff_hour: int | None = None):
     """
     Fetch and combine actual wind generation (FUELHH - 30-min settlement intervals)
@@ -75,6 +78,18 @@ def get_wind_analysis(date_from: str, date_to: str, cutoff_hour: int | None = No
     """
     start_d = parse_date(date_from)
     end_d = parse_date(date_to)
+
+    if start_d < MIN_DELIVERY_DATE or start_d > MAX_DELIVERY_DATE:
+        raise ValueError(
+            f"date_from ({date_from}) is out of scope. Delivery dates must be between "
+            "2026-01-02 and 2026-02-01 (corresponding to purchase decisions made in January 2026)."
+        )
+
+    if end_d < MIN_DELIVERY_DATE or end_d > MAX_DELIVERY_DATE:
+        raise ValueError(
+            f"date_to ({date_to}) is out of scope. Delivery dates must be between "
+            "2026-01-02 and 2026-02-01 (corresponding to purchase decisions made in January 2026)."
+        )
 
     if start_d > end_d:
         raise ValueError("date_from must not be after date_to")

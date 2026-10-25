@@ -70,8 +70,8 @@ The primary analytical endpoint powering the dashboard. It ingests both actual g
 - **Parameters:**
   | Parameter | Type | Required / Optional | Description |
   | :--- | :--- | :--- | :--- |
-  | `date_from` | `string` (Query) | **Required** | Delivery start date in `YYYY-MM-DD` format (e.g. `2026-01-05`). |
-  | `date_to` | `string` (Query) | **Required** | Delivery end date in `YYYY-MM-DD` format (e.g. `2026-01-07`). |
+  | `date_from` | `string` (Query) | **Required** | Delivery start date in `YYYY-MM-DD` format (restricted to `2026-01-02` to `2026-02-01`, e.g. `2026-01-02`). |
+  | `date_to` | `string` (Query) | **Required** | Delivery end date in `YYYY-MM-DD` format (restricted to `2026-01-02` to `2026-02-01`, e.g. `2026-01-05`). |
   | `cutoff_hour` | `integer` (Query) | Optional | Prior-day decision cutoff hour (`0`–`23`, e.g. `12` for 12:00 UTC). Forecasts published after $(D-1)$ at `cutoff_hour:00 UTC` are excluded. |
 
 - **Response Type:** `application/json`
@@ -99,7 +99,7 @@ The primary analytical endpoint powering the dashboard. It ingests both actual g
   }
   ```
 - **Error Responses:**
-  - `400 Bad Request`: If `date_from` is chronologically after `date_to` or date format is invalid.
+  - `400 Bad Request`: If `date_from` or `date_to` is outside the allowed `2026-01-02` to `2026-02-01` window, if `date_from` is after `date_to`, or if date format is invalid.
   - `502 Bad Gateway`: If the upstream Elexon BMRS service fails or times out.
 
 ---
@@ -249,17 +249,21 @@ npm run dev
 
 ## 📊 Core Features & Methodologies
 
-1. **Gate Closure & Cutoff Hour Logic**:
+1. **January 2026 Decision Scope**:
+   - The brief defines scope around purchase decisions made across January 2026 (1 Jan – 31 Jan).
+   - Decisions are taken day-ahead (day $D-1$): a decision on 1 Jan is for delivery on 2 Jan; a decision on 31 Jan is for delivery on 1 Feb. Delivery on 1 Jan is excluded because its decision was taken on 31 Dec 2025.
+   - Consequently, in-scope delivery dates are strictly **2026-01-02 to 2026-02-01**. The frontend locks pickers to `min="2026-01-02"` and `max="2026-02-01"` (defaulting to `2026-01-02`), and the backend enforces this with a `400 Bad Request` validation guard.
+2. **Gate Closure & Cutoff Hour Logic**:
    - For any delivery day $D$, day-ahead power purchasing decisions occur on day $D-1$ before gate closure.
    - The analysis engine automatically fetches forecasts published at or before the previous day's `cutoff_hour:00 UTC` and discards any forecast published after that decision moment.
-2. **30-Minute Settlement Period Resolution**:
+3. **30-Minute Settlement Period Resolution**:
    - Matches actual half-hourly generation records (`FUELHH`) with National Grid wind forecasts (`WINDFOR`).
    - Maps hourly forecasts onto both 30-minute settlement periods (`:00` and `:30`) to ensure all 48 slots per day (or 144 slots across 3 days) are fully represented.
-3. **Rigorous Accuracy Benchmarks**:
+4. **Rigorous Accuracy Benchmarks**:
    - **MAE (Mean Absolute Error):** $\frac{1}{N} \sum |f_i - a_i|$ (Average error magnitude).
    - **RMSE (Root Mean Square Error):** $\sqrt{\frac{1}{N} \sum (f_i - a_i)^2}$ (Heavily penalizes volatile misses).
    - **Bias (Mean Error):** $\frac{1}{N} \sum (f_i - a_i)$ (Positive = Overforecast, Negative = Underforecast).
-4. **Interactive Sorting & Peak Pointers**:
+5. **Interactive Sorting & Peak Pointers**:
    - Dynamic maximum generation and peak error deviation pointers on charts.
    - Ascending / descending column sorting on Forecast, Actual, and Error table data.
 
