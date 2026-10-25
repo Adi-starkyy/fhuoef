@@ -8,7 +8,6 @@ import DataTable from "./components/DataTable"
 import LoadingState from "./components/LoadingState"
 import ErrorState from "./components/ErrorState"
 import EmptyState from "./components/EmptyState"
-import { mockWindData, mockPublishedAt, calculateMetrics } from "./mockData"
 
 const API_BASE =
   import.meta.env.VITE_API_URL ||
@@ -19,15 +18,14 @@ export default function App() {
   const [dateFrom, setDateFrom] = useState("2026-01-01")
   const [dateTo, setDateTo] = useState("2026-01-01")
   const [cutoffHour, setCutoffHour] = useState(12)
-  const [viewState, setViewState] = useState("ready")
+  const [viewState, setViewState] = useState("initial")
   const [errorMessage, setErrorMessage] = useState("")
 
-  // Initial state uses default mock dataset
-  const initialMetrics = calculateMetrics(mockWindData)
+  // Initially empty data until user runs analysis
   const [dashboardData, setDashboardData] = useState({
-    metrics: initialMetrics,
-    rows: mockWindData,
-    publishedAt: mockPublishedAt
+    metrics: { mae: 0, rmse: 0, bias: 0, slot_count: 0 },
+    rows: [],
+    publishedAt: ""
   })
 
   // Format ISO timestamp without regex for charts and data tables
@@ -123,6 +121,10 @@ export default function App() {
         isLoading={viewState === "loading"}
       />
 
+      {viewState === "initial" && (
+        <EmptyState isInitial={true} />
+      )}
+
       {viewState === "loading" && <LoadingState />}
 
       {viewState === "error" && (
@@ -137,6 +139,7 @@ export default function App() {
           dateFrom={dateFrom}
           dateTo={dateTo}
           cutoffHour={cutoffHour}
+          isInitial={false}
         />
       )}
 
