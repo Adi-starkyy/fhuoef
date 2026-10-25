@@ -1,3 +1,4 @@
+import { useMemo } from "react"
 import {
   ResponsiveContainer,
   LineChart,
@@ -6,7 +7,8 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend
+  Legend,
+  ReferenceDot
 } from "recharts"
 
 // Custom tooltip formatter without any regex
@@ -37,6 +39,26 @@ function CustomTooltip({ active, payload, label }) {
 export default function ForecastChart({ data }) {
   const slotCount = data ? data.length : 0
 
+  // Calculate the maximum generation peak point across forecast and actual
+  const peakPoint = useMemo(() => {
+    if (!data || data.length === 0) return null
+    let maxItem = data[0]
+    let maxVal = Math.max(Number(data[0].actual || 0), Number(data[0].forecast || 0))
+
+    for (let i = 1; i < data.length; i++) {
+      const itemVal = Math.max(Number(data[i].actual || 0), Number(data[i].forecast || 0))
+      if (itemVal > maxVal) {
+        maxVal = itemVal
+        maxItem = data[i]
+      }
+    }
+
+    return {
+      time: maxItem.time,
+      value: maxVal
+    }
+  }, [data])
+
   return (
     <section className="card chart-card">
       <div className="card-header">
@@ -46,13 +68,22 @@ export default function ForecastChart({ data }) {
             Forecast vs Actual wind output (MW) across {slotCount} settlement periods
           </p>
         </div>
+
+        {peakPoint && (
+          <div className="peak-badge">
+            <span className="peak-badge-dot"></span>
+            <span>
+              Max Peak: <strong>{Number(peakPoint.value).toLocaleString()} MW</strong> ({peakPoint.time})
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="chart-wrapper">
-        <ResponsiveContainer width="100%" height={360}>
+        <ResponsiveContainer width="100%" height={370}>
           <LineChart
             data={data}
-            margin={{ top: 12, right: 24, left: 16, bottom: 12 }}
+            margin={{ top: 24, right: 24, left: 16, bottom: 12 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
             <XAxis
@@ -98,6 +129,25 @@ export default function ForecastChart({ data }) {
               dot={false}
               activeDot={{ r: 5, strokeWidth: 1 }}
             />
+
+            {peakPoint && (
+              <ReferenceDot
+                x={peakPoint.time}
+                y={peakPoint.value}
+                r={6}
+                fill="#ef4444"
+                stroke="#ffffff"
+                strokeWidth={2}
+                label={{
+                  value: `▲ Peak: ${Number(peakPoint.value).toLocaleString()} MW`,
+                  position: "top",
+                  fill: "#0f172a",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  offset: 10
+                }}
+              />
+            )}
           </LineChart>
         </ResponsiveContainer>
       </div>

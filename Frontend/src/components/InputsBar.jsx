@@ -71,11 +71,6 @@ export default function InputsBar({
       </div>
 
       <div className="inputs-actions">
-        <div className="inputs-summary-badge">
-          <span className="badge-dot"></span>
-          <span>Day-Ahead</span>
-        </div>
-
         <button
           type="button"
           className="analyze-btn"

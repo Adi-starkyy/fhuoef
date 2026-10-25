@@ -1,4 +1,51 @@
+import { useState, useMemo } from "react"
+
 export default function DataTable({ data, publishedAt }) {
+  const [sortKey, setSortKey] = useState(null)
+  const [sortDirection, setSortDirection] = useState(null) // 'asc' | 'desc' | null
+
+  const handleSort = (key) => {
+    if (sortKey !== key) {
+      setSortKey(key)
+      setSortDirection("asc")
+    } else if (sortDirection === "asc") {
+      setSortDirection("desc")
+    } else {
+      setSortKey(null)
+      setSortDirection(null)
+    }
+  }
+
+  const sortedData = useMemo(() => {
+    if (!data || !sortKey || !sortDirection) {
+      return data || []
+    }
+
+    const copied = [...data]
+    copied.sort((a, b) => {
+      const valA = Number(a[sortKey])
+      const valB = Number(b[sortKey])
+
+      if (sortDirection === "asc") {
+        return valA - valB
+      } else {
+        return valB - valA
+      }
+    })
+    return copied
+  }, [data, sortKey, sortDirection])
+
+  const renderSortIndicator = (key) => {
+    if (sortKey !== key || !sortDirection) {
+      return <span className="sort-icon" aria-hidden="true">↕</span>
+    }
+    return (
+      <span className="sort-icon" aria-hidden="true">
+        {sortDirection === "asc" ? "▲" : "▼"}
+      </span>
+    )
+  }
+
   return (
     <section className="card table-card">
       <div className="table-header-row">
@@ -22,14 +69,44 @@ export default function DataTable({ data, publishedAt }) {
             <tr>
               <th scope="col">Slot</th>
               <th scope="col">Time (HH:mm)</th>
-              <th scope="col" className="text-right">Forecast (MW)</th>
-              <th scope="col" className="text-right">Actual (MW)</th>
-              <th scope="col" className="text-right">Error (MW)</th>
+              <th scope="col" className="text-right">
+                <button
+                  type="button"
+                  className={"th-sort-btn" + (sortKey === "forecast" ? " active" : "")}
+                  onClick={() => handleSort("forecast")}
+                  title={`Sort by Forecast (${sortKey === "forecast" && sortDirection === "asc" ? "descending" : "ascending"})`}
+                >
+                  <span>Forecast (MW)</span>
+                  {renderSortIndicator("forecast")}
+                </button>
+              </th>
+              <th scope="col" className="text-right">
+                <button
+                  type="button"
+                  className={"th-sort-btn" + (sortKey === "actual" ? " active" : "")}
+                  onClick={() => handleSort("actual")}
+                  title={`Sort by Actual (${sortKey === "actual" && sortDirection === "asc" ? "descending" : "ascending"})`}
+                >
+                  <span>Actual (MW)</span>
+                  {renderSortIndicator("actual")}
+                </button>
+              </th>
+              <th scope="col" className="text-right">
+                <button
+                  type="button"
+                  className={"th-sort-btn" + (sortKey === "error" ? " active" : "")}
+                  onClick={() => handleSort("error")}
+                  title={`Sort by Error (${sortKey === "error" && sortDirection === "asc" ? "descending" : "ascending"})`}
+                >
+                  <span>Error (MW)</span>
+                  {renderSortIndicator("error")}
+                </button>
+              </th>
               <th scope="col" className="text-center">Status</th>
             </tr>
           </thead>
           <tbody>
-            {data.map((row) => {
+            {sortedData.map((row) => {
               const sign = row.error > 0 ? "+" : ""
               const isOver = row.error > 0
               const isUnder = row.error < 0

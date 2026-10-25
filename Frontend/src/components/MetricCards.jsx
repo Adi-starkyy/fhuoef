@@ -14,7 +14,7 @@ export default function MetricCards({ mae, rmse, bias }) {
           <span className="metric-tag">Mean Absolute Error</span>
         </div>
         <div className="metric-value">{formatMw(mae)}</div>
-        <div className="metric-hint">Average magnitude of forecast error across all 48 slots</div>
+        <div className="metric-hint">Average magnitude of forecast error across all slots</div>
       </div>
 
       <div className="metric-card">

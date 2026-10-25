@@ -1,3 +1,4 @@
+import { useMemo } from "react"
 import {
   ResponsiveContainer,
   BarChart,
@@ -7,6 +8,7 @@ import {
   CartesianGrid,
   Tooltip,
   ReferenceLine,
+  ReferenceDot,
   Cell
 } from "recharts"
 
@@ -38,6 +40,28 @@ function ErrorTooltip({ active, payload, label }) {
 }
 
 export default function ErrorChart({ data }) {
+  // Find the slot with the highest absolute error deviation
+  const peakError = useMemo(() => {
+    if (!data || data.length === 0) return null
+    let maxItem = data[0]
+    let maxAbs = Math.abs(Number(data[0].error || 0))
+
+    for (let i = 1; i < data.length; i++) {
+      const absVal = Math.abs(Number(data[i].error || 0))
+      if (absVal > maxAbs) {
+        maxAbs = absVal
+        maxItem = data[i]
+      }
+    }
+
+    const errVal = Number(maxItem.error || 0)
+    return {
+      time: maxItem.time,
+      error: errVal,
+      sign: errVal > 0 ? "+" : ""
+    }
+  }, [data])
+
   return (
     <section className="card chart-card">
       <div className="card-header">
@@ -47,13 +71,22 @@ export default function ErrorChart({ data }) {
             Forecast minus Actual generation (MW) per settlement period
           </p>
         </div>
+
+        {peakError && (
+          <div className="peak-badge peak-badge-error">
+            <span className="peak-badge-dot"></span>
+            <span>
+              Max Deviation: <strong>{peakError.sign}{Number(peakError.error).toLocaleString()} MW</strong> ({peakError.time})
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="chart-wrapper">
-        <ResponsiveContainer width="100%" height={260}>
+        <ResponsiveContainer width="100%" height={280}>
           <BarChart
             data={data}
-            margin={{ top: 12, right: 24, left: 16, bottom: 12 }}
+            margin={{ top: 24, right: 24, left: 16, bottom: 20 }}
           >
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
             <XAxis
@@ -84,6 +117,25 @@ export default function ErrorChart({ data }) {
                 />
               ))}
             </Bar>
+
+            {peakError && (
+              <ReferenceDot
+                x={peakError.time}
+                y={peakError.error}
+                r={6}
+                fill="#ef4444"
+                stroke="#ffffff"
+                strokeWidth={2}
+                label={{
+                  value: `▲ Peak Error: ${peakError.sign}${Number(peakError.error).toLocaleString()} MW`,
+                  position: peakError.error >= 0 ? "top" : "bottom",
+                  fill: "#0f172a",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  offset: 12
+                }}
+              />
+            )}
           </BarChart>
         </ResponsiveContainer>
       </div>
