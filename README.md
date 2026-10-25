@@ -4,11 +4,11 @@ A full-stack web application designed for UK energy utilities and power traders.
 
 ---
 
-## 🔗 Live Application Links
+## 🔗 Live Application Link
 
-- **Frontend (Vercel):** [https://fhuoef-frontend.vercel.app](https://fhuoef-frontend.vercel.app) *(or replace with your custom Vercel deployment URL)*
-- **Backend API (Heroku / Container):** [https://fhuoef-backend.herokuapp.com](https://fhuoef-backend.herokuapp.com) *(or replace with your custom Heroku deployment URL)*
-- **Interactive Swagger Docs:** `https://<your-backend-url>/docs`
+- **Live Frontend App:** [https://fhuoef-frontend.vercel.app/](https://fhuoef-frontend.vercel.app/)
+
+> **Note:** AI tools were used to assist in building, structuring, and accelerating the development of this project.
 
 ---
 
