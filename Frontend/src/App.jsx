@@ -11,11 +11,9 @@ import EmptyState from "./components/EmptyState"
 import { mockWindData, mockPublishedAt, calculateMetrics } from "./mockData"
 
 const API_BASE =
-  import.meta.env.VITE_API_BASE !== undefined
-    ? import.meta.env.VITE_API_BASE
-    : import.meta.env.DEV
-    ? "http://localhost:8000"
-    : ""
+  import.meta.env.VITE_API_URL ||
+  import.meta.env.VITE_API_BASE ||
+  (import.meta.env.DEV ? "http://localhost:8000" : "")
 
 export default function App() {
   const [dateFrom, setDateFrom] = useState("2026-01-01")
